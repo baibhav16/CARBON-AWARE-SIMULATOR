@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Animated Edge-AI Smart Building Simulation</title>
+<style>
+:root{--bg:#08111f;--panel:#111e31;--line:#2a405c;--txt:#edf5ff;--muted:#9db1ca;--cyan:#42d9ed;--green:#49d6a0;--orange:#ffbd69;--purple:#ae9cff;--red:#ff7285}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#172c48,#08111f 65%);color:var(--txt);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif}
+header{padding:22px max(18px,calc((100% - 1320px)/2));border-bottom:1px solid var(--line);background:#0b1728dd}header small{color:var(--cyan);font-weight:800;letter-spacing:2px}h1{font-size:clamp(23px,3vw,34px);margin:6px 0}header p{margin:0;color:var(--muted)}
+main{max-width:1320px;margin:auto;padding:18px}.bar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+button,select{border:1px solid #38516f;border-radius:9px;padding:10px 14px;background:#1a2b43;color:var(--txt);font-weight:700;cursor:pointer}button.primary{background:var(--cyan);color:#07131e;border:0}button:hover{filter:brightness(1.12)}.live{margin-left:auto;color:var(--green);font-size:12px}
+.layout{display:grid;grid-template-columns: minmax(0,1.7fr) minmax(290px,.8fr);gap:14px}.panel{background:linear-gradient(145deg,#14243a,#101a2a);border:1px solid var(--line);border-radius:15px;padding:15px;min-width:0}.panel h2{font-size:15px;margin:0 0 5px}.hint{font-size:11px;color:var(--muted);margin:0 0 12px}
+.scene{position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(#10253a,#0a1727);min-height:510px}
+.scene svg{width:100%;height:auto;display:block}.building{fill:#182f49;stroke:#5a7897;stroke-width:2}.floor{stroke:#526e8d;stroke-width:2}.window{fill:#243f5a;stroke:#65829f;stroke-width:1.4}.window.lit{fill:#ffd27d;filter:drop-shadow(0 0 7px #ffc86d)}.sensor{fill:#47d9ed;stroke:#d7fbff;stroke-width:1.5}.deviceBox{fill:#1a344d;stroke:#6b8eae;stroke-width:1.5}.wire{fill:none;stroke:#40d6ed;stroke-width:3;stroke-dasharray:7 10;animation:flow 1s linear infinite;filter:drop-shadow(0 0 4px #42d9ed)}.wire.orange{stroke:var(--orange);animation-duration:1.5s}.wire.green{stroke:var(--green);animation-duration:.85s}.pulse{animation:pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.fan{transform-origin:center;animation:spin 2s linear infinite}.car{animation:car 5s ease-in-out infinite alternate}.person{animation:walk 2.2s ease-in-out infinite alternate;transform-origin:center}
+@keyframes flow{to{stroke-dashoffset:-34}}@keyframes pulse{50%{opacity:.35;transform:scale(1.25)}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes car{to{transform:translateX(35px)}}@keyframes walk{to{transform:translateY(-5px)}}
+.caption{position:absolute;left:12px;bottom:10px;background:#071321d9;border:1px solid #35506d;border-radius:9px;padding:8px 11px;color:#d9e8f8;font-size:11px}
+.side{display:grid;gap:14px;align-content:start}.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{background:#0a1727;border:1px solid #273d58;border-radius:10px;padding:11px}.stat small{display:block;color:var(--muted);font-size:11px}.stat b{font-size:21px}.stat em{font-size:10px;color:var(--green);font-style:normal}
+.step{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #253951}.step:last-child{border:0}.num{width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#17394b;color:var(--cyan);font-weight:800;flex:none}.step strong{display:block;font-size:12px}.step span{font-size:11px;color:var(--muted)}
+.control{margin:12px 0}.control label{display:flex;justify-content:space-between;color:#c9d8e9;font-size:12px;margin-bottom:5px}.control input{width:100%;accent-color:var(--cyan)}
+.timeline{display:flex;gap:5px;margin-top:12px}.hour{height:13px;flex:1;border-radius:3px;background:#23364d}.hour.active{background:var(--cyan);box-shadow:0 0 9px #42d9ed}.hour.clean{background:#36bb8a}.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:10px;margin-top:9px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.log{height:128px;overflow:auto;background:#091523;border:1px solid #273c56;border-radius:9px;padding:10px;font:11px/1.65 Consolas,monospace;color:#bcd0e7}.log div:before{content:"› ";color:var(--cyan)}
+footer{text-align:center;color:#7f95b1;font-size:11px;padding:18px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.scene{min-height:0}}@media(max-width:480px){main{padding:10px}.scene{min-height:300px}.stats{grid-template-columns:1fr 1fr}}
+</style></head>
+<body>
+<header><small>LIVE DIGITAL-TWIN DEMONSTRATION</small><h1>Carbon-Aware Smart Building · Animated Simulation</h1><p>Watch sensor data travel to the edge AI node, scheduling decisions reach building devices, and energy demand adapt over a simulated day.</p></header>
+<main>
+<div class="bar"><button class="primary" id="play">▶ Play simulation</button><button id="step">⏭ Next 15-min slot</button><button id="reset">↺ Reset</button><label style="color:#a9bdd4;font-size:12px">Speed&nbsp; <select id="speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label><span class="live" id="live">● READY · LOCAL EDGE NODE</span></div>
+<div class="layout">
+<section class="panel"><h2>Smart building digital twin</h2><p class="hint">Animated IoT sensing → Edge AI → safety filter → appliance actuation</p>
+<div class="scene">
+<svg viewBox="0 0 850 560" role="img" aria-label="Animated smart building with IoT sensors, edge AI gateway and appliances">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#17334c"/><stop offset="1" stop-color="#0a1727"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="850" height="560" fill="url(#sky)"/><circle cx="730" cy="75" r="34" fill="#ffcf83" opacity=".8"/><path d="M0 455 Q200 420 400 455 T850 445 V560 H0Z" fill="#10283a"/>
+<!-- building -->
+<path class="building" d="M105 165 L440 90 L775 165 V455 H105Z"/><path class="floor" d="M105 265H775 M105 360H775"/><path class="floor" d="M440 90V455"/>
+<g id="windows"><rect class="window lit" x="145" y="190" width="70" height="48" rx="4"/><rect class="window" x="245" y="190" width="70" height="48" rx="4"/><rect class="window lit" x="345" y="190" width="55" height="48" rx="4"/><rect class="window" x="480" y="190" width="70" height="48" rx="4"/><rect class="window lit" x="585" y="190" width="70" height="48" rx="4"/><rect class="window" x="685" y="190" width="55" height="48" rx="4"/>
+<rect class="window" x="145" y="285" width="70" height="48" rx="4"/><rect class="window lit" x="245" y="285" width="70" height="48" rx="4"/><rect class="window" x="345" y="285" width="55" height="48" rx="4"/><rect class="window lit" x="480" y="285" width="70" height="48" rx="4"/><rect class="window" x="585" y="285" width="70" height="48" rx="4"/><rect class="window lit" x="685" y="285" width="55" height="48" rx="4"/>
+<rect class="window lit" x="145" y="380" width="70" height="48" rx="4"/><rect class="window" x="245" y="380" width="70" height="48" rx="4"/><rect class="window lit" x="345" y="380" width="55" height="48" rx="4"/><rect class="window" x="480" y="380" width="70" height="48" rx="4"/><rect class="window lit" x="585" y="380" width="70" height="48" rx="4"/><rect class="window" x="685" y="380" width="55" height="48" rx="4"/></g>
+<!-- sensors and occupant -->
+<g><circle class="sensor pulse" cx="180" cy="170" r="7"/><path d="M180 180q-22 20 0 38q22-18 0-38" fill="none" stroke="#42d9ed" opacity=".7"/><circle class="sensor pulse" cx="620" cy="170" r="7"/><circle class="sensor pulse" cx="180" cy="265" r="7"/><circle class="sensor pulse" cx="620" cy="265" r="7"/></g>
+<g class="person" transform="translate(285 220)" stroke="#ffd28a" stroke-width="5" stroke-linecap="round" fill="none"><circle cx="0" cy="-13" r="7" fill="#ffd28a" stroke="none"/><path d="M0 -5V18 M0 2L-12 12 M0 2L12 10 M0 18L-9 32 M0 18L9 32"/></g>
+<!-- device icons -->
+<g transform="translate(155 315)"><rect class="deviceBox" width="65" height="36" rx="7"/><path d="M12 9h41v19H12z M20 14h25" stroke="#42d9ed" fill="none" stroke-width="2"/><text x="32" y="51" fill="#cfe0f2" text-anchor="middle" font-size="11">HVAC</text></g>
+<g transform="translate(510 315)"><rect class="deviceBox" width="65" height="36" rx="7"/><path d="M20 8v12q0 12 12 12t12-12V8" fill="none" stroke="#ffbd69" stroke-width="3"/><text x="32" y="51" fill="#cfe0f2" text-anchor="middle" font-size="11">WATER</text></g>
+<g transform="translate(675 315)"><rect class="deviceBox" width="65" height="36" rx="7"/><circle cx="32" cy="18" r="12" fill="none" stroke="#49d6a0" stroke-width="3"/><path d="M32 7v11l8 5" stroke="#49d6a0" fill="none" stroke-width="2"/><text x="32" y="51" fill="#cfe0f2" text-anchor="middle" font-size="11">EV CHARGE</text></g>
+<!-- edge gateway -->
+<rect x="342" y="462" width="166" height="69" rx="12" fill="#163c50" stroke="#42d9ed" stroke-width="2"/><rect x="359" y="477" width="28" height="27" rx="4" fill="#42d9ed" opacity=".2" stroke="#42d9ed"/><path d="M365 484h16m-16 6h16m-16 6h10" stroke="#42d9ed" stroke-width="2"/><text x="399" y="487" fill="#eaf7ff" font-size="13" font-weight="bold">EDGE AI NODE</text><text x="399" y="505" fill="#9fc6d9" font-size="10">Predict · Optimize · Protect</text><circle id="edgeLed" cx="493" cy="477" r="5" fill="#49d6a0" filter="url(#glow)"/>
+<!-- cloud -->
+<g transform="translate(660 25)"><path d="M18 39Q4 39 4 26Q4 14 18 14Q24 0 40 7Q54 7 57 20Q72 19 74 31Q75 42 60 43H18Z" fill="#263f5c" stroke="#a994ff" stroke-width="2"/><text x="39" y="31" fill="#e7e0ff" text-anchor="middle" font-size="10">CLOUD</text></g>
+<!-- moving signal paths -->
+<path class="wire" d="M180 177 Q180 120 330 125 L390 455"/><path class="wire" d="M620 177 Q620 120 510 125 L460 455"/><path class="wire orange" d="M425 462 L425 430 L185 430 L185 352"/><path class="wire green" d="M425 462 L425 440 L540 440 L540 352"/><path class="wire green" d="M450 462 L450 450 L707 450 L707 352"/><path d="M660 65 Q580 45 510 95" fill="none" stroke="#a994ff" stroke-width="2" stroke-dasharray="4 7" class="wire"/>
+<g id="traveller" filter="url(#glow)"><circle r="7" fill="#fff" stroke="#42d9ed" stroke-width="3"><animateMotion dur="4s" repeatCount="indefinite" path="M180 177 Q180 120 330 125 L390 455"/></circle></g>
+<text x="125" y="145" fill="#8ceafa" font-size="11">PIR / TEMP SENSORS</text><text x="350" y="548" fill="#9fddec" font-size="11">LOCAL DECISION-MAKING AT THE EDGE</text>
+</svg><div class="caption" id="sceneCaption">Waiting for simulation · Press Play to start the building</div></div>
+<div class="timeline" id="timeline"></div><div class="legend"><span><i class="dot" style="background:#42d9ed"></i>Sensor data</span><span><i class="dot" style="background:#ffbd69"></i>Control signal</span><span><i class="dot" style="background:#49d6a0"></i>Device action</span><span><i class="dot" style="background:#a994ff"></i>Cloud forecast</span></div>
+</section>
+<aside class="side">
+<section class="panel"><h2>Live simulation telemetry</h2><p class="hint">Values change as the virtual clock advances</p><div class="stats">
+<div class="stat"><small>Virtual time</small><b id="clock">00:00</b><em>15-min slots</em></div><div class="stat"><small>Occupancy</small><b id="occ">—</b><em id="presence">Waiting</em></div>
+<div class="stat"><small>Indoor temperature</small><b id="temp">—</b><em>°C</em></div><div class="stat"><small>Building demand</small><b id="power">—</b><em>kW</em></div>
+<div class="stat"><small>Grid carbon intensity</small><b id="carbon">—</b><em>kg CO₂/kWh</em></div><div class="stat"><small>Electricity tariff</small><b id="tariff">—</b><em>₹ / kWh</em></div></div></section>
+<section class="panel"><h2>AI decision pipeline</h2><p class="hint">Current processing stage</p>
+<div class="step"><div class="num">1</div><div><strong>IoT perception</strong><span id="stage1">Waiting for sensor packets</span></div></div>
+<div class="step"><div class="num">2</div><div><strong>Occupancy prediction</strong><span id="stage2">Predicting next 1–6 hours</span></div></div>
+<div class="step"><div class="num">3</div><div><strong>Carbon + tariff forecast</strong><span id="stage3">Finding cleaner, cheaper slots</span></div></div>
+<div class="step"><div class="num">4</div><div><strong>RL scheduler</strong><span id="stage4">Selecting appliance and HVAC actions</span></div></div>
+<div class="step"><div class="num">5</div><div><strong>Safety layer</strong><span id="stage5">Checking comfort and deadlines</span></div></div>
+<div class="step"><div class="num">6</div><div><strong>Actuator command</strong><span id="stage6">Waiting to control devices</span></div></div></section>
+<section class="panel"><h2>Try a scenario</h2><p class="hint">Change the building conditions while paused or running</p>
+<div class="control"><label>Occupancy level <b id="ov">65%</b></label><input id="occRange" type="range" min="0" max="100" value="65"></div>
+<div class="control"><label>Indoor temperature <b id="tv">26 °C</b></label><input id="tempRange" type="range" min="18" max="34" value="26"></div>
+<div class="control"><label>EV energy requirement <b id="evv">18 kWh</b></label><input id="evRange" type="range" min="5" max="40" value="18"></div>
+<div class="control"><label>HVAC comfort band</label><select id="comfort"><option value="22,26">22–26 °C</option><option value="21,25">21–25 °C</option><option value="23,27">23–27 °C</option></select></div></section>
+<section class="panel"><h2>Edge AI event log</h2><p class="hint">Step-by-step explanation for your viva</p><div class="log" id="log"><div>Simulator initialized. Synthetic data mode.</div><div>Local edge gateway is ready.</div></div></section>
+</aside>
+</div>
+<section class="panel" style="margin-top:14px"><h2>What this animation represents</h2><p class="hint">The moving cyan packets represent sensor data travelling to the edge gateway. The gateway represents local AI inference. Green/orange paths represent commands sent to HVAC, water heating and EV charging. The cloud supplies forecast signals; the local edge node makes the immediate scheduling decision.</p><p class="hint"><b>Research accuracy:</b> This is an animated conceptual demonstrator with synthetic values and illustrative rule-based decisions. Your paper proposes a 15-minute/96-slot simulation, an LSTM or gradient-boosted occupancy predictor, a DQN/PPO reinforcement-learning scheduler, and a rule-based safety layer. This animation does not claim to execute trained LSTM/DQN/PPO models or a calibrated EnergyPlus building model.</p></section>
+<footer>Animated research demonstrator · No real appliances are connected · Synthetic data only</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);let slot=0,timer=null;
+const ci=[.43,.41,.39,.38,.4,.45,.52,.58,.61,.59,.55,.5,.46,.43,.4,.39,.42,.48,.56,.62,.6,.55,.49,.46],tar=[5.2,5,4.8,4.7,4.8,5.1,6.2,7.1,7.8,7.6,7,6.5,6.1,5.8,5.5,5.3,5.8,7,8.2,8.5,8,7.4,6.3,5.7];
+const timeline=$('timeline');for(let i=0;i<24;i++){let d=document.createElement('div');d.className='hour';d.title=String(i).padStart(2,'0')+':00';timeline.appendChild(d)}
+function log(s){let d=document.createElement('div');d.textContent=s;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight;while($('log').children.length>18)$('log').firstChild.remove()}
+function stage(n,s){$('stage'+n).textContent=s}
+function tick(){let h=Math.floor(slot/4),q=slot%4,occ=+$('occRange').value,baseOcc=[12,10,8,8,12,25,45,70,80,75,60,48,45,50,60,68,85,92,90,82,70,55,35,20][h],present=Math.max(0,Math.min(100,baseOcc+(occ-65)*.35));
+let t=+$('tempRange').value+Math.sin((h-14)*Math.PI/12)*1.5,carbon=ci[h],price=tar[h],clean=carbon<.44,cheap=price<5.6;
+let power=1.05+(present/100)*.7+(t>26?.8:.25)+(h>=17&&h<=21?1.1:.2);
+let activity,action;
+stage(1,`PIR ${Math.round(present)}%; temperature ${t.toFixed(1)} °C; smart-meter packet received`);stage(2,`Predicted occupancy for next hours: ${Math.round(Math.min(100,present+(h>=16?12:-8)))}%`);stage(3,`Grid CI ${carbon.toFixed(2)}; tariff ₹${price.toFixed(2)} — ${clean?'low-carbon':'higher-carbon'} period`);
+if(present<25){activity='Low occupancy predicted';action='HVAC setpoint relaxed; lighting dimmed';power-=.45;stage(4,'Defer flexible loads; reduce HVAC and lighting');}
+else if(clean||cheap){activity='Favourable grid window';action='Schedule flexible load / EV charging';power+=.55;stage(4,'Run eligible flexible load in favourable slot');}
+else{activity='Occupied / grid signal elevated';action='Delay flexible load if deadline allows';stage(4,'Defer flexible loads; maintain comfort');}
+let [lo,hi]=$('comfort').value.split(',').map(Number);let safe=t<hi+1&&t>lo-1;stage(5,safe?'Comfort band check passed; appliance windows checked':'Safety override: HVAC comfort correction');if(!safe){action='Safety override: HVAC comfort correction';power+=.35}
+stage(6,action);$('clock').textContent=String(h).padStart(2,'0')+':'+String(q*15).padStart(2,'0');$('occ').textContent=Math.round(present)+'%';$('presence').textContent=present>30?'Occupants detected':'Low / no occupancy';$('temp').textContent=t.toFixed(1);$('power').textContent=Math.max(.4,power).toFixed(2);$('carbon').textContent=carbon.toFixed(2);$('tariff').textContent=price.toFixed(2);
+[...timeline.children].forEach((el,i)=>{el.classList.toggle('active',i===h);el.classList.toggle('clean',ci[i]<.44)});
+$('sceneCaption').textContent=`${$('clock').textContent} · ${activity} · ${action}`;log(`${$('clock').textContent} | ${activity}. ${action}.`);slot=(slot+1)%96;if(slot===0)log('24-hour cycle completed. Restarting next virtual day.')}
+function play(){if(timer){clearInterval(timer);timer=null;$('play').textContent='▶ Resume simulation';$('live').textContent='● PAUSED';}else{timer=setInterval(tick,1100/+$('speed').value);$('play').textContent='Ⅱ Pause simulation';$('live').textContent='● SIMULATION RUNNING';}}
+$('play').onclick=play;$('step').onclick=()=>{if(timer)play();tick();};$('reset').onclick=()=>{if(timer)play();slot=0;$('log').innerHTML='<div>Simulation reset. Synthetic sensor feed ready.</div>';tick();slot=0;$('clock').textContent='00:00';$('live').textContent='● READY';$('play').textContent='▶ Play simulation';};
+$('speed').onchange=()=>{if(timer){clearInterval(timer);timer=setInterval(tick,1100/+$('speed').value)}};
+$('occRange').oninput=()=> $('ov').textContent=$('occRange').value+'%';$('tempRange').oninput=()=> $('tv').textContent=$('tempRange').value+' °C';$('evRange').oninput=()=> $('evv').textContent=$('evRange').value+' kWh';
+tick();slot=0;
+</script></body></html>
